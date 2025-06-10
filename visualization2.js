@@ -7,14 +7,14 @@ d3.json("topic_year_data.json").then((data) => {
 
 
   const legend = d3
-  .select("#chartArea")
-  .append("div")
-  .style("margin", "-20px auto") // 垂直间距 + 水平居中
-  .style("text-align", "center") // 文本居中
-  .style("font-size", "14px")
-  .style("width", "fit-content"); // 自动适配内容宽度
+    .select("#chartArea")
+    .append("div")
+    .style("margin", "-20px auto") 
+    .style("text-align", "center") 
+    .style("font-size", "14px")
+    .style("width", "fit-content"); 
 
-    
+
   const svg = d3
     .select("#chartArea")
     .append("svg")
@@ -23,11 +23,11 @@ d3.json("topic_year_data.json").then((data) => {
 
   const wordGroup = svg
     .append("g")
-    .attr("transform", `translate(${width / 2}, ${height / 2})`);
+    .attr("transform", `translate(${width / 2.5}, ${height / 2})`);
 
   const controls = d3.select("#controls");
 
-  controls.append("label").text("Year: ").style("font-size","14px");
+  controls.append("label").text("Year: ").style("font-size", "14px");
   const slider = controls
     .append("input")
     .attr("type", "range")
@@ -41,20 +41,20 @@ d3.json("topic_year_data.json").then((data) => {
     .attr("id", "yearLabel")
     .style("margin-left", "10px")
     .text(years[0])
-    .style("font-size","14px");
+    .style("font-size", "14px");
 
   const isPlaying = { status: false };
   const playBtn = controls
     .append("button")
     .style("margin-left", "20px")
     .text("▶ Play")
-    .style("font-size","14px")
+    .style("font-size", "14px")
     .on("click", () => {
       isPlaying.status = !isPlaying.status;
       playBtn.text(isPlaying.status ? "⏸ Pause" : "▶ Play");
     });
 
-  
+
 
   topics.forEach((t, i) => {
     legend

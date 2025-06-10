@@ -1,5 +1,5 @@
 const width = 800;
-const height = 600;
+const height = 700;
 let svg, simulation;
 let allData = [];
 let allSpecies = [];
@@ -10,24 +10,27 @@ function initializeVisualization() {
         .append("svg")
         .attr("width", width)
         .attr("height", height);
+
+    svg = svg.append("g")
+        .attr("transform", "translate(-100, -20)");
 }
 
 function loadDataFromCSV() {
-    
+
 
     d3.csv("ChemicalData.csv").then(data => {
         try {
             processData(data);
             setupFilters();
             updateVisualization();
-            
+
             document.getElementById('filters').style.display = 'block';
         } catch (error) {
-            
+
             console.error('Error:', error);
         }
     }).catch(error => {
-       
+
         console.error('Error loading CSV:', error);
     });
 }
@@ -83,15 +86,15 @@ function setupFilters() {
     allChemicals.forEach(chemical => {
         const formatted = chemical
             .toLowerCase()
-            .replace(/\b\w/g, char => char.toUpperCase());  // 首字母大写
-    
+            .replace(/\b\w/g, char => char.toUpperCase()); 
+
         const option = document.createElement('option');
-        option.value = chemical; // 保留原始 value
-        option.textContent = formatted; // 显示为格式化后
+        option.value = chemical; 
+        option.textContent = formatted; 
         option.selected = true;
         chemicalSelect.appendChild(option);
     });
-    
+
 }
 
 function selectAll(type) {
@@ -117,12 +120,12 @@ function updateVisualization() {
 
     if (filteredData.length === 0) {
         svg.selectAll("*").remove();
-       
+
         return;
     }
 
     createNetwork(filteredData);
-    
+
 }
 
 function createNetwork(data) {
@@ -187,9 +190,13 @@ function createNetwork(data) {
         .data(nodes)
         .enter().append("text")
         .attr("class", "label")
-        .text(d => d.id.length > 12 ? d.id.substring(0, 10) + "..." : d.id)
-        .style("font-size","8px")
+        .text(d => {
+            const name = d.id.length > 12 ? d.id.substring(0, 10) + "..." : d.id;
+            return name.charAt(0).toUpperCase() + name.slice(1).toLowerCase();
+        })
+        .style("font-size", "8px")
         .attr("dy", d => d.radius + 12);
+
 
     simulation.on("tick", () => {
         link
@@ -225,17 +232,17 @@ function dragended(event, d) {
     d.fy = null;
 }
 function initSustainabilityVisualization() {
-    d3.select("#chartArea").selectAll("*").remove(); // 清空旧图
+    d3.select("#chartArea").selectAll("*").remove(); // remove old chart
     initializeVisualization();
 
     d3.csv("ChemicalData.csv").then(data => {
         processData(data);
         setupFilters();
         updateVisualization();
-       
+
         document.getElementById('filters').style.display = 'block';
     }).catch(error => {
-       
+
         console.error('Error loading CSV:', error);
     });
 }

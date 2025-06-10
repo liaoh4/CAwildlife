@@ -17,7 +17,7 @@
 
         header {
             background-color: white;
-            color: #13161c;
+            color: #1A73E8;
             text-align: center;
             padding: 30px;
             font-size: 26px;
@@ -42,7 +42,7 @@
         nav button {
             background: none;
             border: none;
-            color: #4599f4;
+            color: #3399FF;
             padding: 15px;
             font-size: 16px;
             text-align: left;
@@ -60,9 +60,7 @@
             padding: 20px;
             background: white;
             min-width: 0;
-            /* 防止撑宽 container */
             overflow-x: auto;
-            /* 可选：让控件超宽时横向滚动，而不是撑大布局 */
         }
 
 
@@ -82,7 +80,7 @@
         }
 
         button {
-            background-color: #4599f4;
+            background-color: #3399FF;
             color: white;
             border: none;
             padding: 5px 8px;
@@ -100,7 +98,6 @@
             pointer-events: none;
             font-size: 12px;
             opacity: 0;
-            /* 默认隐藏 */
             transition: opacity 0.2s ease;
         }
 
@@ -110,13 +107,13 @@
         }
 
         .chemical {
-            fill: #c5e2c6;
+            fill: #FFD580;
             stroke: #fff;
             stroke-width: 2px;
         }
 
         .species {
-            fill: #9aadd2;
+            fill: #66CCFF;
             stroke: #fff;
             stroke-width: 2px;
         }
@@ -127,22 +124,28 @@
         }
 
         .link {
-            stroke: #999;
-            stroke-opacity: 0.3;
-            stroke-width: 1px;
+            stroke: #AAC4D8;
+            stroke-opacity: 0.5;
+            stroke-width: 1.5px;
+        }
+
+        .label {
+            fill: #2C3E50;
+            font-size: 12px;
+            font-weight: 500;
         }
     </style>
 </head>
 
 <body>
-    <header style="color:#3262c1">
+    <header>
         Scholarly Trends in California Wildlife Studies
     </header>
     <div id="tooltip" class="tooltip"></div>
 
     <div class="container">
         <nav>
-            <button onclick="loadChart('focus')">Focus Shift</button>
+            <button class="active" onclick="loadChart('focus')">Focus Shift</button>
             <button onclick="loadChart('topic')">Topic Evolution</button>
             <button onclick="loadChart('sustainability')">Sustainability Exploration</button>
             <button onclick="loadChart('gap')">Research Gap</button>
@@ -160,7 +163,7 @@
 
     <script>
         function loadChart(type) {
-            // 移除按钮高亮
+
             document.querySelectorAll('nav button').forEach(btn => btn.classList.remove('active'));
             const buttons = {
                 focus: 0,
@@ -169,24 +172,22 @@
                 gap: 3
             };
             document.querySelectorAll('nav button')[buttons[type]].classList.add('active');
-
-            // 清空旧内容
             document.getElementById('controls').innerHTML = '';
             document.getElementById('chartArea').innerHTML = '';
 
-            // 移除旧的 script（如果存在）
+
             const oldScript = document.getElementById('dynamicScript');
             if (oldScript) {
                 oldScript.remove();
             }
 
-            // 如果是 topic，检查是否已加载 d3-cloud 脚本，没有则加载
+
 
             if (type === 'focus') {
                 const script = document.createElement('script');
                 script.src = 'visualization1.js';
                 script.onload = () => {
-                    renderFocusChart(); // 每次点击都重新调用函数
+                    renderFocusChart();
                 };
                 script.id = 'dynamicScript';
                 document.body.appendChild(script);
@@ -204,7 +205,7 @@
                 script.src = 'visualization2.js?t=' + new Date().getTime();
                 script.onload = () => {
                     if (typeof renderTopicVisualization === 'function') {
-                        renderTopicVisualization(); // 你需在 visualization2.js 中定义这个函数
+                        renderTopicVisualization();
                     }
                 };
                 document.body.appendChild(script);
@@ -213,7 +214,7 @@
 
             if (type === 'sustainability') {
                 document.getElementById('controls').innerHTML = `
-<div id="filters" style="margin: 20px 20px 20px -150px; text-align: center;">
+<div id="filters" style="margin: -10px 20px 20px -180px; text-align: center;">
   <div style="display: inline-block; vertical-align: top; text-align: left; margin-right: 20px;">
     <label for="speciesFilter" style="font-size: 14px; font-weight: bold; display: inline-block; vertical-align: top;">Species:</label><br/>
     <select id="speciesFilter" multiple 
@@ -239,10 +240,10 @@
 
                 const script = document.createElement('script');
                 script.id = 'dynamicScript';
-                script.src = 'visualization3.js?t=' + new Date().getTime(); // 防缓存
+                script.src = 'visualization3.js?t=' + new Date().getTime();
                 script.onload = () => {
                     if (typeof initSustainabilityVisualization === 'function') {
-                        initSustainabilityVisualization(); // ⬅️ 手动调用初始化逻辑
+                        initSustainabilityVisualization();
                     }
                 };
                 document.body.appendChild(script);
@@ -252,31 +253,30 @@
 
             if (type === 'gap') {
                 document.getElementById('controls').innerHTML = `
-      <div style="width: 100%;">
+      <div style="width: 80%;">
         <label  style="font-size: 14px;"for="startYear">Start Year:</label>
         <select id="startYear"></select>
         <label  style="font-size: 14px;"for="endYear">End Year:</label>
         <select id="endYear"></select>
       </div>
-      <div style="width: 100%;">
+      <div style="width: 80%;">
         <label  style="font-size: 14px;" for="sustainKeywordsInput">Sustainability Keywords:</label><br><br>
         <input type="text" id="sustainKeywordsInput" style="width: 500px; "font-size: 14px" placeholder="e.g. mortality, reproduction, diet, health">
       </div>
-      <div style="width: 100%;">
+      <div style="width: 80%;">
         <label  style="font-size: 14px;"> <input type="checkbox" id="sustainOnly"> 🌿 Show Sustainability Topics Only</label>
         <button style="font-size: 14px;" id="filterButton">Filter</button>
       </div>
     `;
 
-                // 移除旧的 script（如果存在）
+                // remove old script if exists
                 const oldScript = document.getElementById('dynamicScript');
                 if (oldScript) {
                     oldScript.remove();
                 }
 
-                // 检查函数是否已存在
                 if (typeof initGapVisualization === 'function') {
-                    initGapVisualization(); // 🔁 直接调用函数
+                    initGapVisualization();
                 } else {
                     const script = document.createElement('script');
                     script.id = 'dynamicScript';
@@ -290,10 +290,14 @@
                 }
             }
 
-
-            // 加载对应可视化脚本
-
         }
+        window.onload = function () {
+            const firstButton = document.querySelector("nav button");
+            if (firstButton) {
+                firstButton.click();
+            }
+        };
+
 
     </script>
 </body>
