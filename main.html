@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Scholarly Trends in California Wildlife Studies</title>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/papaparse@5.3.2/papaparse.min.js"></script>
+    <style>
+        body {
+            margin: 0;
+            font-family: 'Segoe UI', sans-serif;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
+
+        header {
+            background-color: white;
+            color: #13161c;
+            text-align: center;
+            padding: 30px;
+            font-size: 26px;
+
+        }
+
+        .container {
+            flex: 1;
+            display: flex;
+            min-width: 0;
+        }
+
+        nav {
+            width: 250px;
+            background-color: white;
+            color: white;
+            display: flex;
+            flex-direction: column;
+            flex-shrink: 0;
+        }
+
+        nav button {
+            background: none;
+            border: none;
+            color: #4599f4;
+            padding: 15px;
+            font-size: 16px;
+            text-align: left;
+            cursor: pointer;
+        }
+
+        nav button.active {
+            background-color: #d7eaff;
+        }
+
+        .main {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            padding: 20px;
+            background: white;
+            min-width: 0;
+            /* 防止撑宽 container */
+            overflow-x: auto;
+            /* 可选：让控件超宽时横向滚动，而不是撑大布局 */
+        }
+
+
+        .controls {
+            margin-bottom: 20px;
+            justify-content: center;
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .chart {
+            flex: 1;
+            background: white;
+            padding: 20px;
+        }
+
+        button {
+            background-color: #4599f4;
+            color: white;
+            border: none;
+            padding: 5px 8px;
+            font-size: 14px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+        }
+
+        .tooltip {
+            position: absolute;
+            background: white;
+            border: 1px solid #ccc;
+            padding: 5px 10px;
+            pointer-events: none;
+            font-size: 12px;
+            opacity: 0;
+            /* 默认隐藏 */
+            transition: opacity 0.2s ease;
+        }
+
+
+        .cell {
+            stroke: #ccc;
+        }
+
+        .chemical {
+            fill: #c5e2c6;
+            stroke: #fff;
+            stroke-width: 2px;
+        }
+
+        .species {
+            fill: #9aadd2;
+            stroke: #fff;
+            stroke-width: 2px;
+        }
+
+        select option:checked {
+            background-color: #e2e3fd;
+            color: black;
+        }
+
+        .link {
+            stroke: #999;
+            stroke-opacity: 0.3;
+            stroke-width: 1px;
+        }
+    </style>
+</head>
+
+<body>
+    <header style="color:#3262c1">
+        Scholarly Trends in California Wildlife Studies
+    </header>
+    <div id="tooltip" class="tooltip"></div>
+
+    <div class="container">
+        <nav>
+            <button onclick="loadChart('focus')">Focus Shift</button>
+            <button onclick="loadChart('topic')">Topic Evolution</button>
+            <button onclick="loadChart('sustainability')">Sustainability Exploration</button>
+            <button onclick="loadChart('gap')">Research Gap</button>
+        </nav>
+
+        <div class="main">
+            <div class="controls" id="controls">
+                <!-- Dynamic control elements go here -->
+            </div>
+            <div class="chart" id="chartArea">
+                <!-- D3.js chart renders here -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function loadChart(type) {
+            // 移除按钮高亮
+            document.querySelectorAll('nav button').forEach(btn => btn.classList.remove('active'));
+            const buttons = {
+                focus: 0,
+                topic: 1,
+                sustainability: 2,
+                gap: 3
+            };
+            document.querySelectorAll('nav button')[buttons[type]].classList.add('active');
+
+            // 清空旧内容
+            document.getElementById('controls').innerHTML = '';
+            document.getElementById('chartArea').innerHTML = '';
+
+            // 移除旧的 script（如果存在）
+            const oldScript = document.getElementById('dynamicScript');
+            if (oldScript) {
+                oldScript.remove();
+            }
+
+            // 如果是 topic，检查是否已加载 d3-cloud 脚本，没有则加载
+
+            if (type === 'focus') {
+                const script = document.createElement('script');
+                script.src = 'visualization1.js';
+                script.onload = () => {
+                    renderFocusChart(); // 每次点击都重新调用函数
+                };
+                script.id = 'dynamicScript';
+                document.body.appendChild(script);
+            }
+            if (type === 'topic') {
+                if (!document.getElementById('d3cloud')) {
+                    const cloudScript = document.createElement('script');
+                    cloudScript.src = 'https://unpkg.com/d3-cloud/build/d3.layout.cloud.js';
+                    cloudScript.id = 'd3cloud';
+                    document.head.appendChild(cloudScript);
+                }
+
+                const script = document.createElement('script');
+                script.id = 'dynamicScript';
+                script.src = 'visualization2.js?t=' + new Date().getTime();
+                script.onload = () => {
+                    if (typeof renderTopicVisualization === 'function') {
+                        renderTopicVisualization(); // 你需在 visualization2.js 中定义这个函数
+                    }
+                };
+                document.body.appendChild(script);
+            }
+
+
+            if (type === 'sustainability') {
+                document.getElementById('controls').innerHTML = `
+<div id="filters" style="margin: 20px 20px 20px -150px; text-align: center;">
+  <div style="display: inline-block; vertical-align: top; text-align: left; margin-right: 20px;">
+    <label for="speciesFilter" style="font-size: 14px; font-weight: bold; display: inline-block; vertical-align: top;">Species:</label><br/>
+    <select id="speciesFilter" multiple 
+            style="width: 250px; height: 120px; border: 1px solid #4599f4; font-size: 14px; vertical-align: top;" 
+            onchange="updateVisualization()"></select>
+  </div>
+
+  <div style="display: inline-block; vertical-align: top; text-align: left;">
+    <label for="chemicalFilter" style="font-size: 14px; font-weight: bold; display: inline-block; vertical-align: top;">Chemicals:</label><br/>
+    <select id="chemicalFilter" multiple 
+            style="width: 250px; height: 120px; border: 1px solid #4599f4; font-size: 14px; vertical-align: top;" 
+            onchange="updateVisualization()"></select>
+  </div>
+
+  <div style="margin-top: 20px;">
+    <button class="btn" onclick="selectAll('species')" style="margin-right: 10px;">All Species</button>
+    <button class="btn" onclick="selectAll('chemicals')">All Chemicals</button>
+  </div>
+</div>
+`;
+
+
+
+                const script = document.createElement('script');
+                script.id = 'dynamicScript';
+                script.src = 'visualization3.js?t=' + new Date().getTime(); // 防缓存
+                script.onload = () => {
+                    if (typeof initSustainabilityVisualization === 'function') {
+                        initSustainabilityVisualization(); // ⬅️ 手动调用初始化逻辑
+                    }
+                };
+                document.body.appendChild(script);
+            }
+
+
+
+            if (type === 'gap') {
+                document.getElementById('controls').innerHTML = `
+      <div style="width: 100%;">
+        <label  style="font-size: 14px;"for="startYear">Start Year:</label>
+        <select id="startYear"></select>
+        <label  style="font-size: 14px;"for="endYear">End Year:</label>
+        <select id="endYear"></select>
+      </div>
+      <div style="width: 100%;">
+        <label  style="font-size: 14px;" for="sustainKeywordsInput">Sustainability Keywords:</label><br><br>
+        <input type="text" id="sustainKeywordsInput" style="width: 500px; "font-size: 14px" placeholder="e.g. mortality, reproduction, diet, health">
+      </div>
+      <div style="width: 100%;">
+        <label  style="font-size: 14px;"> <input type="checkbox" id="sustainOnly"> 🌿 Show Sustainability Topics Only</label>
+        <button style="font-size: 14px;" id="filterButton">Filter</button>
+      </div>
+    `;
+
+                // 移除旧的 script（如果存在）
+                const oldScript = document.getElementById('dynamicScript');
+                if (oldScript) {
+                    oldScript.remove();
+                }
+
+                // 检查函数是否已存在
+                if (typeof initGapVisualization === 'function') {
+                    initGapVisualization(); // 🔁 直接调用函数
+                } else {
+                    const script = document.createElement('script');
+                    script.id = 'dynamicScript';
+                    script.src = 'visualization4.js?t=' + new Date().getTime();
+                    script.onload = () => {
+                        if (typeof initGapVisualization === 'function') {
+                            initGapVisualization();
+                        }
+                    };
+                    document.body.appendChild(script);
+                }
+            }
+
+
+            // 加载对应可视化脚本
+
+        }
+
+    </script>
+</body>
+
+</html>
